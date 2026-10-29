@@ -32,6 +32,92 @@ test_that("pMCMC adaptation works", {
   )
 })
 
+test_that("particles are chosen from the variance of repeated filter runs", {
+  x <- structure(
+    list(run_flag = TRUE, options = list(nparticles = 4), thin = 1),
+    class = "libbi"
+  )
+
+  ## the first number of particles tried gives log-likelihoods, from
+  ## independent filter runs, with a variance well above target_variance;
+  ## the second gives one well below it
+  loglik_by_n <- list(
+    `4` = c(-10, 10, -8, 9, -11, 12, -9, 8, -12, 11),
+    `8` = c(0.1, -0.1, 0.2, -0.2, 0.05, -0.05, 0.1, -0.1, 0, 0)
+  )
+
+  local_mocked_bindings(
+    extract_sample = function(x, ...) list(),
+    filter = function(x, init, nparticles, seed, ...) {
+      structure(
+        list(loglik = loglik_by_n[[as.character(nparticles)]][seed]),
+        class = "libbi"
+      )
+    },
+    bi_read = function(x, vars, ...) list(loglikelihood = x$loglik),
+    .package = "rbi"
+  )
+
+  adapted <- adapt_particles(
+    x, min = 4, max = 8, target_variance = 1, nruns = 10, quiet = TRUE
+  )
+
+  expect_identical(adapted$options$nparticles, 8)
+})
+
+test_that("a 'seed' passed in '...' does not clash with the per-run seed", {
+  x <- structure(
+    list(run_flag = TRUE, options = list(nparticles = 4), thin = 1),
+    class = "libbi"
+  )
+
+  local_mocked_bindings(
+    extract_sample = function(x, ...) list(),
+    filter = function(x, init, nparticles, seed, ...) {
+      structure(list(loglik = 0.1 * seed), class = "libbi")
+    },
+    bi_read = function(x, vars, ...) list(loglikelihood = x$loglik),
+    .package = "rbi"
+  )
+
+  expect_silent(
+    adapt_particles(
+      x,
+      min = 4, max = 8, target_variance = 1, nruns = 3, quiet = TRUE,
+      seed = 1
+    )
+  )
+})
+
+test_that("initial states are fixed for transform-initial-to-param models", {
+  x <- structure(
+    list(
+      run_flag = TRUE,
+      options = list(
+        nparticles = 4, `with-transform-initial-to-param` = TRUE
+      ),
+      thin = 1
+    ),
+    class = "libbi"
+  )
+
+  captured <- list()
+  local_mocked_bindings(
+    extract_sample = function(x, ...) {
+      captured <<- list(...)
+      list()
+    },
+    .package = "rbi"
+  )
+
+  adapt_particles(
+    x, min = 4, max = 4, target_variance = 1, nruns = 1, quiet = TRUE
+  )
+
+  expect_identical(captured$type, c("param", "state"))
+  expect_true(captured$init_to_param)
+})
+
 test_that("warnings are given", {
   expect_warning(adapt_proposal(bi, size = TRUE, adapt = "shape"), "adapt size")
   expect_warning(
