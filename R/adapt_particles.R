@@ -1,3 +1,27 @@
+##' Variance of the finite log-likelihoods from a trial run
+##'
+##' Warns when fewer than two log-likelihoods are finite, rather than
+##' returning a variance of 0, which would make a trial run with no usable
+##' log-likelihoods look like one with a vanishingly small variance.
+##' @param loglik numeric vector of log-likelihoods from a trial run
+##' @param nparticles the number of particles used for the trial run, for the
+##'   warning message
+##' @return the variance of the finite log-likelihoods, or `NA` if fewer than
+##'   two are finite
+##' @keywords internal
+trial_loglik_variance <- function(loglik, nparticles) {
+  finite_loglik <- loglik[is.finite(loglik)]
+  if (length(finite_loglik) < 2) {
+    warning(
+      "Only ", length(finite_loglik), " of ", length(loglik),
+      " log-likelihoods were finite with ", nparticles,
+      " particles; trying a different number of particles."
+    )
+    return(NA_real_)
+  }
+  stats::var(finite_loglik)
+}
+
 #' @rdname adapt_particles
 #' @name adapt_particles
 #' @title Adapt the number of particles
@@ -102,21 +126,20 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
     adapted <- rbi::sample(adapted, nparticles = test[id], chain = TRUE, ...)
 
     loglik <- rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value
-    ## remove any infinite log-likelihoods
-    loglik <- loglik[is.finite(loglik)]
-    var_loglik <- stats::var(loglik)
-    if (is.na(var_loglik)) var_loglik <- 0
+    var_loglik <- trial_loglik_variance(loglik, test[id])
 
-    if (!quiet) {
-      message(
-        date(), " ", test[id], " particles, loglikelihod variance: ",
-        var_loglik
-      )
-    }
+    if (!is.na(var_loglik)) {
+      if (!quiet) {
+        message(
+          date(), " ", test[id], " particles, loglikelihod variance: ",
+          var_loglik
+        )
+      }
 
-    if (var_loglik < target_variance) {
-      ## choose smallest var-loglikelihood < target_variance
-      found_good <- TRUE
+      if (var_loglik < target_variance) {
+        ## choose smallest var-loglikelihood < target_variance
+        found_good <- TRUE
+      }
     }
   }
   if (!found_good) id <- length(test)
