@@ -1,8 +1,8 @@
 ##' Variance of the finite log-likelihoods from a trial run
 ##'
-##' Warns, rather than returning a variance of 0, when fewer than two
-##' log-likelihoods are finite, so that a trial run with no usable
-##' log-likelihoods is not mistaken for one with a vanishingly small variance.
+##' Warns when fewer than two log-likelihoods are finite, rather than
+##' returning a variance of 0, which would make a trial run with no usable
+##' log-likelihoods look like one with a vanishingly small variance.
 ##' @param loglik numeric vector of log-likelihoods from a trial run
 ##' @param nparticles the number of particles used for the trial run, for the
 ##'   warning message

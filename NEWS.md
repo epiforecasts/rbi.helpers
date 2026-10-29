@@ -1,8 +1,8 @@
 # rbi.helpers (development version)
 
-* `adapt_particles()` no longer accepts the smallest number of particles
-  when a trial run has fewer than two finite log-likelihoods; it now warns
-  and tries a different number of particles instead
+* `adapt_particles()` now warns and tries a different number of particles,
+  rather than accepting the smallest one, when a trial run has too few
+  finite log-likelihoods
 
 # rbi.helpers 0.4.1
 
