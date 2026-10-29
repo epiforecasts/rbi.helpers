@@ -53,3 +53,20 @@ test_that("deprecated options are recognised", {
   expect_warning(adapt_proposal(bi, size = TRUE), "adapt")
   expect_warning(adapt_proposal(bi, correlations = TRUE), "adapt")
 })
+
+test_that("a trial run with too few finite log-likelihoods warns", {
+  expect_warning(
+    var_loglik <- rbi.helpers:::trial_loglik_variance(
+      c(-Inf, -Inf, NaN), 4
+    ),
+    "0 of 3 log-likelihoods were finite with 4 particles"
+  )
+  expect_true(is.na(var_loglik))
+})
+
+test_that("a trial run with enough finite log-likelihoods does not warn", {
+  expect_silent(
+    var_loglik <- rbi.helpers:::trial_loglik_variance(c(-1, -2, -Inf), 4)
+  )
+  expect_equal(var_loglik, stats::var(c(-1, -2)))
+})

@@ -1,5 +1,9 @@
 # rbi.helpers (development version)
 
+* `adapt_particles()` no longer accepts the smallest number of particles
+  when a trial run has fewer than two finite log-likelihoods; it now warns
+  and tries a different number of particles instead
+
 # rbi.helpers 0.4.1
 
 * fix documentation links leading to CRAN check failures
