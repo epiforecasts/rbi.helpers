@@ -16,7 +16,7 @@ Imports:
   Matrix
 Suggests:
   markdown,
-  testthat,
+  testthat (>= 3.1.8),
   covr (>= 3.2.0),
   stringi,
   knitr,
