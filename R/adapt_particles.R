@@ -65,12 +65,19 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
     x, np = "last", type = "param", init_to_param = TRUE
   )
 
+  ## the seed varies per run so filter runs are independent; drop any
+  ## 'seed' passed in '...' so it doesn't collide with this one
+  dots <- list(...)
+  dots[["seed"]] <- NULL
+
   found_good <- FALSE
   id <- 0
   while (!found_good && (id + 1) < length(test)) {
     id <- id + 1
     loglik <- vapply(seq_len(nruns), function(run) {
-      f <- rbi::filter(x, init = par, nparticles = test[id], seed = run, ...)
+      f <- do.call(rbi::filter, c(
+        list(x, init = par, nparticles = test[id], seed = run), dots
+      ))
       rbi::bi_read(f, vars = "loglikelihood")$loglikelihood
     }, 0)
     ## remove any infinite log-likelihoods

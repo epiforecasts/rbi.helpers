@@ -65,6 +65,30 @@ test_that("particles are chosen from the variance of repeated filter runs", {
   expect_identical(adapted$options$nparticles, 8)
 })
 
+test_that("a 'seed' passed in '...' does not clash with the per-run seed", {
+  x <- structure(
+    list(run_flag = TRUE, options = list(nparticles = 4), thin = 1),
+    class = "libbi"
+  )
+
+  local_mocked_bindings(
+    extract_sample = function(x, ...) list(),
+    filter = function(x, init, nparticles, seed, ...) {
+      structure(list(loglik = 0.1 * seed), class = "libbi")
+    },
+    bi_read = function(x, vars, ...) list(loglikelihood = x$loglik),
+    .package = "rbi"
+  )
+
+  expect_silent(
+    adapt_particles(
+      x,
+      min = 4, max = 8, target_variance = 1, nruns = 3, quiet = TRUE,
+      seed = 1
+    )
+  )
+})
+
 test_that("warnings are given", {
   expect_warning(adapt_proposal(bi, size = TRUE, adapt = "shape"), "adapt size")
   expect_warning(
