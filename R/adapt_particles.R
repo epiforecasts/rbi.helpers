@@ -70,7 +70,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   while (!found_good && (id + 1) < length(test)) {
     id <- id + 1
     loglik <- vapply(seq_len(nruns), function(run) {
-      f <- rbi::filter(x, init = par, nparticles = test[id], seed = run)
+      f <- rbi::filter(x, init = par, nparticles = test[id], seed = run, ...)
       rbi::bi_read(f, vars = "loglikelihood")$loglikelihood
     }, 0)
     ## remove any infinite log-likelihoods
