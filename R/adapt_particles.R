@@ -59,10 +59,15 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
 
   test <- union(min * 2**(seq(0, floor(log2(max / min)))), max)
 
-  ## fix parameters at the last posterior sample, so repeated filter runs
-  ## give independent log-likelihood estimates at a single point
+  ## fix parameters (and, if the model transforms initial conditions into
+  ## parameters, the initial states too) at the last posterior sample, so
+  ## repeated filter runs give independent log-likelihood estimates at a
+  ## single point
+  par_type <- "param"
+  init_to_param <- "with-transform-initial-to-param" %in% names(x$options)
+  if (init_to_param) par_type <- c(par_type, "state")
   par <- rbi::extract_sample(
-    x, np = "last", type = "param", init_to_param = TRUE
+    x, np = "last", type = par_type, init_to_param = init_to_param
   )
 
   ## the seed varies per run so filter runs are independent; drop any

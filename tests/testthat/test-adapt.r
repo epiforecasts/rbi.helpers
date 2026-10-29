@@ -89,6 +89,35 @@ test_that("a 'seed' passed in '...' does not clash with the per-run seed", {
   )
 })
 
+test_that("initial states are fixed for transform-initial-to-param models", {
+  x <- structure(
+    list(
+      run_flag = TRUE,
+      options = list(
+        nparticles = 4, `with-transform-initial-to-param` = TRUE
+      ),
+      thin = 1
+    ),
+    class = "libbi"
+  )
+
+  captured <- list()
+  local_mocked_bindings(
+    extract_sample = function(x, ...) {
+      captured <<- list(...)
+      list()
+    },
+    .package = "rbi"
+  )
+
+  adapt_particles(
+    x, min = 4, max = 4, target_variance = 1, nruns = 1, quiet = TRUE
+  )
+
+  expect_identical(captured$type, c("param", "state"))
+  expect_true(captured$init_to_param)
+})
+
 test_that("warnings are given", {
   expect_warning(adapt_proposal(bi, size = TRUE, adapt = "shape"), "adapt size")
   expect_warning(
