@@ -230,5 +230,5 @@ update_proposal <- function(model, truncate = TRUE,
     )
   }
 
-  return(model)
+  model
 }
