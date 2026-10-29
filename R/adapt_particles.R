@@ -70,7 +70,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
     x, np = "last", type = par_type, init_to_param = init_to_param
   )
 
-  ## the seed varies per run so filter runs are independent; drop any
+  ## the seed varies per run to keep filter runs independent; drop any
   ## 'seed' passed in '...' so it doesn't collide with this one
   dots <- list(...)
   dots[["seed"]] <- NULL
