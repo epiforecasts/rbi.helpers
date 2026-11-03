@@ -1,25 +1,25 @@
 #' @rdname adapt_particles
 #' @name adapt_particles
 #' @title Adapt the number of particles
-#' @description This function takes the provided [rbi::libbi()] and runs
-#'   MCMC at a single point (i.e., repeatedly proposing the same parameters),
-#'   adapting the number of particles distribution until the variance of the
-#'   log-likelihood crosses the value given as \code{target.variance} (1 by
-#'   default).
+#' @description This function takes the provided [rbi::libbi()] and, at the
+#'   last sample of its posterior, repeatedly runs the particle filter,
+#'   adapting the number of particles until the variance of the resulting
+#'   log-likelihood estimates crosses the value given as
+#'   \code{target_variance} (1 by default).
 #' @param x a [rbi::libbi()] object
 #' @param min minimum number of particles
 #' @param max maximum number of particles
 #' @param target_variance target log-likelihood variance; once this is crossed,
 #'   the current number of particles will be used
+#' @param nruns number of times the particle filter is run, at a given number
+#'   of particles, to estimate the log-likelihood variance
 #' @param quiet if set to TRUE, will not provide running output of particle
 #'   numbers tested
 #' @param target.variance deprecated; use \code{target_variance} instead
 #' @param ... parameters for libbi$run
-#' @return a [rbi::libbi()] with the desired proposal distribution
-#' @importFrom rbi bi_model bi_read sample remove_lines attach_data
-#'   installed_libbi_version bi_contents var_names
+#' @return a [rbi::libbi()] with the desired number of particles
+#' @importFrom rbi bi_read extract_sample filter sample
 #' @importFrom stats var
-#' @importFrom utils compareVersion
 #' @examples
 #' example_obs <- rbi::bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- rbi::bi_model(system.file(package="rbi", "PZ.bi"))
@@ -33,7 +33,7 @@
 #' }
 #' @export
 adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
-                            quiet = FALSE, target.variance, ...) { # nolint
+                            nruns = 20, quiet = FALSE, target.variance, ...) { # nolint
   if (!missing(target.variance)) {
     warning("target.variance is deprecated. Use 'target_variance' instead.")
     if (missing(target_variance)) {
@@ -57,51 +57,34 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
     x <- rbi::sample(x, ...)
   }
 
-  libbi_version <- installed_libbi_version(x$path_to_libbi)
-  old_libbi <- ## check if version is > 1.4.2
-    (compareVersion(libbi_version, "1.4.2") <= 0)
-
-  thin <- x$thin ## no thinning when adapting particles
-
   test <- union(min * 2**(seq(0, floor(log2(max / min)))), max)
 
-  adapted <- x
+  ## fix parameters (and, if the model transforms initial conditions into
+  ## parameters, the initial states too) at the last posterior sample, so
+  ## repeated filter runs give independent log-likelihood estimates at a
+  ## single point
+  par_type <- "param"
+  init_to_param <- "with-transform-initial-to-param" %in% names(x$options)
+  if (init_to_param) par_type <- c(par_type, "state")
+  par <- rbi::extract_sample(
+    x, np = "last", type = par_type, init_to_param = init_to_param
+  )
 
-  if (old_libbi) { ## old libbi version; we must copy the prior to the proposal
-    model <- adapted$model
-    model <- rbi::remove_lines(model, "proposal_parameter")
-    model <- rbi::remove_lines(model, "parameter")
-    if ("with-transform-initial-to-param" %in% names(x$options)) {
-      model <- rbi::remove_lines(model, "proposal_initial")
-      model <- rbi::remove_lines(model, "initial")
-    }
-    adapted$model <- model
-  } else {
-    adapted$model <- update_proposal(adapted$model)
-    zero_cov_vars <- get_mvn_params(adapted, fix = 0)
-    if ("input-file" %in% names(adapted$options)) {
-      existing_cov_vars <-
-        intersect(bi_contents(adapted, file = "input"), names(zero_cov_vars))
-      existing_cov_input <- bi_read(
-        adapted, file = "input", vars = existing_cov_vars
-      )
-    } else {
-      existing_cov_input <- list()
-    }
-    adapted <- attach_data(
-      adapted, file = "input", zero_cov_vars, append = TRUE, overwrite = TRUE
-    )
-  }
-
-  adapted$thin <- 1
+  ## the seed varies per run to keep filter runs independent; drop any
+  ## 'seed' passed in '...' so it doesn't collide with this one
+  dots <- list(...)
+  dots[["seed"]] <- NULL
 
   found_good <- FALSE
   id <- 0
   while (!found_good && (id + 1) < length(test)) {
     id <- id + 1
-    adapted <- rbi::sample(adapted, nparticles = test[id], chain = TRUE, ...)
-
-    loglik <- rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value
+    loglik <- vapply(seq_len(nruns), function(run) {
+      f <- do.call(rbi::filter, c(
+        list(x, init = par, nparticles = test[id], seed = run), dots
+      ))
+      rbi::bi_read(f, vars = "loglikelihood")$loglikelihood
+    }, 0)
     ## remove any infinite log-likelihoods
     loglik <- loglik[is.finite(loglik)]
     var_loglik <- stats::var(loglik)
@@ -109,7 +92,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
 
     if (!quiet) {
       message(
-        date(), " ", test[id], " particles, loglikelihod variance: ",
+        date(), " ", test[id], " particles, log-likelihood variance: ",
         var_loglik
       )
     }
@@ -121,21 +104,10 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   }
   if (!found_good) id <- length(test)
 
+  adapted <- x
   adapted$options[["nparticles"]] <- test[id]
-  adapted$thin <- thin
-
-  if (old_libbi) {
-    adapted$model <- x$model
-    adapted$run_flag <- FALSE
-  } else if (length(existing_cov_input) > 0) {
-    adapted <-
-      attach_data(adapted,
-        file = "input", existing_cov_input,
-        append = TRUE, overwrite = TRUE
-      )
-  }
 
   if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 
-  return(adapted)
+  adapted
 }

@@ -1,5 +1,10 @@
 # rbi.helpers (development version)
 
+* `adapt_particles` now estimates the log-likelihood variance from
+  independent particle filter runs at the last posterior sample, instead of
+  from a zero-variance-proposal MCMC chain, which chose too few particles
+  because it understated the variance
+
 # rbi.helpers 0.4.1
 
 * fix documentation links leading to CRAN check failures
