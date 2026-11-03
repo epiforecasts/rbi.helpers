@@ -110,13 +110,14 @@ particles using
 ``` r
 
 adapted <- adapt_particles(bi_prior)
-#> Mon Aug 24 14:28:03 2026 Adapting the number of particles
-#> Mon Aug 24 14:28:20 2026 4 particles, loglikelihod variance: 9.5863402696008
-#> Mon Aug 24 14:28:25 2026 8 particles, loglikelihod variance: 3.77192932450897
-#> Mon Aug 24 14:28:30 2026 16 particles, loglikelihod variance: 2.24273655866084
-#> Mon Aug 24 14:28:36 2026 32 particles, loglikelihod variance: 1.30179246083847
-#> Mon Aug 24 14:28:44 2026 64 particles, loglikelihod variance: 0.651044197683024
-#> Mon Aug 24 14:28:44 2026 Choosing 64 particles.
+#> Tue Nov  3 23:09:44 2026 Adapting the number of particles
+#> Tue Nov  3 23:10:08 2026 4 particles, log-likelihood variance: 2667.44668256344
+#> Tue Nov  3 23:10:22 2026 8 particles, log-likelihood variance: 964.170175666075
+#> Tue Nov  3 23:10:35 2026 16 particles, log-likelihood variance: 37.7101728277209
+#> Tue Nov  3 23:10:49 2026 32 particles, log-likelihood variance: 22.8149666205312
+#> Tue Nov  3 23:11:03 2026 64 particles, log-likelihood variance: 1.67438874720679
+#> Tue Nov  3 23:11:17 2026 128 particles, log-likelihood variance: 0.535539774215127
+#> Tue Nov  3 23:11:17 2026 Choosing 128 particles.
 ```
 
 This will take the last sample of the output file contained in the
@@ -128,7 +129,7 @@ saved in the `adapted` object:
 ``` r
 
 adapted$options$nparticles
-#> [1] 64
+#> [1] 128
 ```
 
 ## Adapt the proposal distribution
@@ -148,9 +149,9 @@ for an acceptance rate between 0.05 and 0.4, we can run:
 ``` r
 
 adapted <- adapt_proposal(adapted, min = 0.05, max = 0.4)
-#> Mon Aug 24 14:28:44 2026 Adapting the proposal distribution
-#> Mon Aug 24 14:28:44 2026 Initial trial run
-#> Mon Aug 24 14:29:06 2026 Acceptance rate: 0.283283283283283
+#> Tue Nov  3 23:11:17 2026 Adapting the proposal distribution
+#> Tue Nov  3 23:11:18 2026 Initial trial run
+#> Tue Nov  3 23:11:44 2026 Acceptance rate: 0.29029029029029
 ```
 
 The covariance matrices for parameters and initial conditions are stored
@@ -161,10 +162,10 @@ in the input file contained in the `libbi` object `adapted`
 bi_read(adapted, file = "input")
 #> $`__proposal_parameter_cov`
 #>   __dim_parameter_cov.1 __dim_parameter_cov.2      value
-#> 1                 p_rep                 p_rep 0.03184091
+#> 1                 p_rep                 p_rep 0.05703592
 #> 2                 p_rep                  p_R0 0.00000000
-#> 3                  p_R0                 p_rep 0.00000000
-#> 4                  p_R0                  p_R0 0.25829530
+#> 3                  p_R0                 p_rep 0.05845875
+#> 4                  p_R0                  p_R0 0.27700436
 ```
 
 ## Compute DIC
@@ -177,7 +178,7 @@ Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion)
 
 posterior <- sample(adapted)
 DIC(posterior)
-#> [1] 72.00597
+#> [1] 71.25961
 ```
 
 This samples from the posterior distribution using the adapted number of
@@ -194,11 +195,11 @@ res <- numeric_to_time(posterior, unit = "day", origin = as.Date("2018-04-01"))
 head(res$Z)
 #>   np       time      value
 #> 1  0 2018-04-01   1.000000
-#> 2  0 2018-04-08   1.452416
-#> 3  0 2018-04-15   6.895681
-#> 4  0 2018-04-22  17.104379
-#> 5  0 2018-04-29 134.397199
-#> 6  0 2018-05-06 365.274828
+#> 2  0 2018-04-08   2.301100
+#> 3  0 2018-04-15   3.341731
+#> 4  0 2018-04-22  17.248873
+#> 5  0 2018-04-29 131.997022
+#> 6  0 2018-05-06 339.870673
 ```
 
 The function `time_to_numeric` does the converse, converting R times or
@@ -210,11 +211,11 @@ orig <- time_to_numeric(res, unit = "day", origin = as.Date("2018-04-01"))
 head(orig$Z)
 #>   np time      value
 #> 1  0    0   1.000000
-#> 2  0    7   1.452416
-#> 3  0   14   6.895681
-#> 4  0   21  17.104379
-#> 5  0   28 134.397199
-#> 6  0   35 365.274828
+#> 2  0    7   2.301100
+#> 3  0   14   3.341731
+#> 4  0   21  17.248873
+#> 5  0   28 131.997022
+#> 6  0   35 339.870673
 ```
 
 ## Create inference chains
@@ -234,15 +235,15 @@ posterior <- sample(
   adapt_proposal(min = 0.05, max = 0.4) |>
   sample(nsamples = 5000) |>
   sample_obs()
-#> Mon Aug 24 14:29:27 2026 Adapting the proposal distribution
-#> Mon Aug 24 14:29:56 2026 Adapting the number of particles
-#> Mon Aug 24 14:30:12 2026 4 particles, loglikelihod variance: 4.98864430510319
-#> Mon Aug 24 14:30:16 2026 8 particles, loglikelihod variance: 2.50334348358283
-#> Mon Aug 24 14:30:21 2026 16 particles, loglikelihod variance: 2.278740962349
-#> Mon Aug 24 14:30:26 2026 32 particles, loglikelihod variance: 2.06221670510984
-#> Mon Aug 24 14:30:34 2026 64 particles, loglikelihod variance: 1.02667431640938
-#> Mon Aug 24 14:30:46 2026 128 particles, loglikelihod variance: 0.399685704417314
-#> Mon Aug 24 14:30:46 2026 Choosing 128 particles.
-#> Mon Aug 24 14:30:46 2026 Initial trial run
-#> Mon Aug 24 14:31:12 2026 Acceptance rate: 0.388388388388388
+#> Tue Nov  3 23:12:10 2026 Adapting the proposal distribution
+#> Tue Nov  3 23:12:41 2026 Adapting the number of particles
+#> Tue Nov  3 23:13:06 2026 4 particles, log-likelihood variance: 2667.44668256344
+#> Tue Nov  3 23:13:20 2026 8 particles, log-likelihood variance: 964.170175666075
+#> Tue Nov  3 23:13:33 2026 16 particles, log-likelihood variance: 37.7101728277209
+#> Tue Nov  3 23:13:48 2026 32 particles, log-likelihood variance: 22.8149666205312
+#> Tue Nov  3 23:14:02 2026 64 particles, log-likelihood variance: 1.67438874720679
+#> Tue Nov  3 23:14:16 2026 128 particles, log-likelihood variance: 0.535539774215127
+#> Tue Nov  3 23:14:16 2026 Choosing 128 particles.
+#> Tue Nov  3 23:14:16 2026 Initial trial run
+#> Tue Nov  3 23:14:43 2026 Acceptance rate: 0.255255255255255
 ```

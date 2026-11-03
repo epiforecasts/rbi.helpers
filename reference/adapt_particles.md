@@ -1,10 +1,10 @@
 # Adapt the number of particles
 
-This function takes the provided \[rbi::libbi()\] and runs MCMC at a
-single point (i.e., repeatedly proposing the same parameters), adapting
-the number of particles distribution until the variance of the
-log-likelihood crosses the value given as `target.variance` (1 by
-default).
+This function takes the provided \[rbi::libbi()\] and, at the last
+sample of its posterior, repeatedly runs the particle filter, adapting
+the number of particles until the variance of the resulting
+log-likelihood estimates crosses the value given as `target_variance` (1
+by default).
 
 ## Usage
 
@@ -14,6 +14,7 @@ adapt_particles(
   min = 1,
   max = 1024,
   target_variance = 1,
+  nruns = 20,
   quiet = FALSE,
   target.variance,
   ...
@@ -39,6 +40,11 @@ adapt_particles(
   target log-likelihood variance; once this is crossed, the current
   number of particles will be used
 
+- nruns:
+
+  number of times the particle filter is run, at a given number of
+  particles, to estimate the log-likelihood variance
+
 - quiet:
 
   if set to TRUE, will not provide running output of particle numbers
@@ -54,7 +60,7 @@ adapt_particles(
 
 ## Value
 
-a \[rbi::libbi()\] with the desired proposal distribution
+a \[rbi::libbi()\] with the desired number of particles
 
 ## Examples
 
