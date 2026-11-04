@@ -84,8 +84,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   test <- union(min * 2**(seq(0, floor(log2(max / min)))), max)
 
   ## fix parameters (and, if the model transforms initial conditions into
-  ## parameters, the initial states too) at the last posterior sample, so
-  ## repeated filter runs give independent log-likelihood estimates at a
+  ## parameters, the initial states too) at the last posterior sample, to get
+  ## independent log-likelihood estimates from repeated filter runs at a
   ## single point
   par_type <- "param"
   init_to_param <- "with-transform-initial-to-param" %in% names(x$options)
@@ -95,7 +95,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   )
 
   ## the seed varies per run to keep filter runs independent; drop any
-  ## 'seed' passed in '...' so it doesn't collide with this one
+  ## 'seed' passed in '...' to avoid a clash with it
   dots <- list(...)
   dots[["seed"]] <- NULL
 
