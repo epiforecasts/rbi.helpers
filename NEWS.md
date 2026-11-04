@@ -1,5 +1,9 @@
 # rbi.helpers (development version)
 
+* `adapt_particles` now estimates the log-likelihood variance from
+  independent particle filter runs at the last posterior sample, instead of
+  from a zero-variance-proposal MCMC chain, which chose too few particles
+  because it understated the variance
 * `adapt_particles()` now warns and tries a different number of particles,
   rather than accepting the smallest one, when a trial run has too few
   finite log-likelihoods

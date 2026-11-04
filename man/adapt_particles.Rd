@@ -9,6 +9,7 @@ adapt_particles(
   min = 1,
   max = 1024,
   target_variance = 1,
+  nruns = 20,
   quiet = FALSE,
   target.variance,
   ...
@@ -24,6 +25,9 @@ adapt_particles(
 \item{target_variance}{target log-likelihood variance; once this is crossed,
 the current number of particles will be used}
 
+\item{nruns}{number of times the particle filter is run, at a given number
+of particles, to estimate the log-likelihood variance}
+
 \item{quiet}{if set to TRUE, will not provide running output of particle
 numbers tested}
 
@@ -32,14 +36,14 @@ numbers tested}
 \item{...}{parameters for libbi$run}
 }
 \value{
-a [rbi::libbi()] with the desired proposal distribution
+a [rbi::libbi()] with the desired number of particles
 }
 \description{
-This function takes the provided [rbi::libbi()] and runs
-  MCMC at a single point (i.e., repeatedly proposing the same parameters),
-  adapting the number of particles distribution until the variance of the
-  log-likelihood crosses the value given as \code{target.variance} (1 by
-  default).
+This function takes the provided [rbi::libbi()] and, at the
+  last sample of its posterior, repeatedly runs the particle filter,
+  adapting the number of particles until the variance of the resulting
+  log-likelihood estimates crosses the value given as
+  \code{target_variance} (1 by default).
 }
 \examples{
 example_obs <- rbi::bi_read(system.file(package="rbi", "example_dataset.nc"))
