@@ -1,3 +1,27 @@
+##' Variance of the finite log-likelihoods from a trial run
+##'
+##' Warns when fewer than two log-likelihoods are finite, rather than
+##' returning a variance of 0, which would make a trial run with no usable
+##' log-likelihoods look like one with a vanishingly small variance.
+##' @param loglik numeric vector of log-likelihoods from a trial run
+##' @param nparticles the number of particles used for the trial run, for the
+##'   warning message
+##' @return the variance of the finite log-likelihoods, or `NA` if fewer than
+##'   two are finite
+##' @keywords internal
+trial_loglik_variance <- function(loglik, nparticles) {
+  finite_loglik <- loglik[is.finite(loglik)]
+  if (length(finite_loglik) < 2) {
+    warning(
+      "Only ", length(finite_loglik), " of ", length(loglik),
+      " log-likelihoods were finite with ", nparticles,
+      " particles; trying a different number of particles."
+    )
+    return(NA_real_)
+  }
+  stats::var(finite_loglik)
+}
+
 #' @rdname adapt_particles
 #' @name adapt_particles
 #' @title Adapt the number of particles
@@ -60,8 +84,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   test <- union(min * 2**(seq(0, floor(log2(max / min)))), max)
 
   ## fix parameters (and, if the model transforms initial conditions into
-  ## parameters, the initial states too) at the last posterior sample, so
-  ## repeated filter runs give independent log-likelihood estimates at a
+  ## parameters, the initial states too) at the last posterior sample, to get
+  ## independent log-likelihood estimates from repeated filter runs at a
   ## single point
   par_type <- "param"
   init_to_param <- "with-transform-initial-to-param" %in% names(x$options)
@@ -71,7 +95,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
   )
 
   ## the seed varies per run to keep filter runs independent; drop any
-  ## 'seed' passed in '...' so it doesn't collide with this one
+  ## 'seed' passed in '...' to avoid a clash with it
   dots <- list(...)
   dots[["seed"]] <- NULL
 
@@ -85,21 +109,20 @@ adapt_particles <- function(x, min = 1, max = 1024, target_variance = 1,
       ))
       rbi::bi_read(f, vars = "loglikelihood")$loglikelihood
     }, 0)
-    ## remove any infinite log-likelihoods
-    loglik <- loglik[is.finite(loglik)]
-    var_loglik <- stats::var(loglik)
-    if (is.na(var_loglik)) var_loglik <- 0
+    var_loglik <- trial_loglik_variance(loglik, test[id])
 
-    if (!quiet) {
-      message(
-        date(), " ", test[id], " particles, log-likelihood variance: ",
-        var_loglik
-      )
-    }
+    if (!is.na(var_loglik)) {
+      if (!quiet) {
+        message(
+          date(), " ", test[id], " particles, log-likelihood variance: ",
+          var_loglik
+        )
+      }
 
-    if (var_loglik < target_variance) {
-      ## choose smallest var-loglikelihood < target_variance
-      found_good <- TRUE
+      if (var_loglik < target_variance) {
+        ## choose smallest var-loglikelihood < target_variance
+        found_good <- TRUE
+      }
     }
   }
   if (!found_good) id <- length(test)
