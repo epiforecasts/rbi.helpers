@@ -34,7 +34,9 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rbihelpers-development-version">rbi.helpers (development version)<a class="anchor" aria-label="anchor" href="#rbihelpers-development-version"></a></h2>
 <ul><li>
-<code>adapt_particles</code> now estimates the log-likelihood variance from independent particle filter runs at the last posterior sample, instead of from a zero-variance-proposal MCMC chain, which chose too few particles because it understated the variance</li>
+<code><a href="../reference/adapt_particles.html">adapt_particles()</a></code> now estimates the log-likelihood variance from independent particle filter runs at the last posterior sample, instead of from a zero-variance-proposal MCMC chain that understated the variance and chose too few particles</li>
+<li>
+<code><a href="../reference/adapt_particles.html">adapt_particles()</a></code> now warns and tries a different number of particles, rather than accepting the smallest one, when a trial run has too few finite log-likelihoods</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.1" id="rbihelpers-041">rbi.helpers 0.4.1<a class="anchor" aria-label="anchor" href="#rbihelpers-041"></a></h2><p class="text-muted">CRAN release: 2025-09-26</p>

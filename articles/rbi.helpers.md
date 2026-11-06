@@ -110,14 +110,14 @@ particles using
 ``` r
 
 adapted <- adapt_particles(bi_prior)
-#> Tue Nov  3 23:09:44 2026 Adapting the number of particles
-#> Tue Nov  3 23:10:08 2026 4 particles, log-likelihood variance: 2667.44668256344
-#> Tue Nov  3 23:10:22 2026 8 particles, log-likelihood variance: 964.170175666075
-#> Tue Nov  3 23:10:35 2026 16 particles, log-likelihood variance: 37.7101728277209
-#> Tue Nov  3 23:10:49 2026 32 particles, log-likelihood variance: 22.8149666205312
-#> Tue Nov  3 23:11:03 2026 64 particles, log-likelihood variance: 1.67438874720679
-#> Tue Nov  3 23:11:17 2026 128 particles, log-likelihood variance: 0.535539774215127
-#> Tue Nov  3 23:11:17 2026 Choosing 128 particles.
+#> Fri Nov  6 11:14:44 2026 Adapting the number of particles
+#> Fri Nov  6 11:15:09 2026 4 particles, log-likelihood variance: 2667.44668256344
+#> Fri Nov  6 11:15:23 2026 8 particles, log-likelihood variance: 964.170175666075
+#> Fri Nov  6 11:15:37 2026 16 particles, log-likelihood variance: 37.7101728277209
+#> Fri Nov  6 11:15:50 2026 32 particles, log-likelihood variance: 22.8149666205312
+#> Fri Nov  6 11:16:05 2026 64 particles, log-likelihood variance: 1.67438874720679
+#> Fri Nov  6 11:16:19 2026 128 particles, log-likelihood variance: 0.535539774215127
+#> Fri Nov  6 11:16:19 2026 Choosing 128 particles.
 ```
 
 This will take the last sample of the output file contained in the
@@ -149,9 +149,9 @@ for an acceptance rate between 0.05 and 0.4, we can run:
 ``` r
 
 adapted <- adapt_proposal(adapted, min = 0.05, max = 0.4)
-#> Tue Nov  3 23:11:17 2026 Adapting the proposal distribution
-#> Tue Nov  3 23:11:18 2026 Initial trial run
-#> Tue Nov  3 23:11:44 2026 Acceptance rate: 0.29029029029029
+#> Fri Nov  6 11:16:19 2026 Adapting the proposal distribution
+#> Fri Nov  6 11:16:19 2026 Initial trial run
+#> Fri Nov  6 11:16:46 2026 Acceptance rate: 0.29029029029029
 ```
 
 The covariance matrices for parameters and initial conditions are stored
@@ -235,15 +235,15 @@ posterior <- sample(
   adapt_proposal(min = 0.05, max = 0.4) |>
   sample(nsamples = 5000) |>
   sample_obs()
-#> Tue Nov  3 23:12:10 2026 Adapting the proposal distribution
-#> Tue Nov  3 23:12:41 2026 Adapting the number of particles
-#> Tue Nov  3 23:13:06 2026 4 particles, log-likelihood variance: 2667.44668256344
-#> Tue Nov  3 23:13:20 2026 8 particles, log-likelihood variance: 964.170175666075
-#> Tue Nov  3 23:13:33 2026 16 particles, log-likelihood variance: 37.7101728277209
-#> Tue Nov  3 23:13:48 2026 32 particles, log-likelihood variance: 22.8149666205312
-#> Tue Nov  3 23:14:02 2026 64 particles, log-likelihood variance: 1.67438874720679
-#> Tue Nov  3 23:14:16 2026 128 particles, log-likelihood variance: 0.535539774215127
-#> Tue Nov  3 23:14:16 2026 Choosing 128 particles.
-#> Tue Nov  3 23:14:16 2026 Initial trial run
-#> Tue Nov  3 23:14:43 2026 Acceptance rate: 0.255255255255255
+#> Fri Nov  6 11:17:13 2026 Adapting the proposal distribution
+#> Fri Nov  6 11:17:44 2026 Adapting the number of particles
+#> Fri Nov  6 11:18:08 2026 4 particles, log-likelihood variance: 2667.44668256344
+#> Fri Nov  6 11:18:22 2026 8 particles, log-likelihood variance: 964.170175666075
+#> Fri Nov  6 11:18:36 2026 16 particles, log-likelihood variance: 37.7101728277209
+#> Fri Nov  6 11:18:50 2026 32 particles, log-likelihood variance: 22.8149666205312
+#> Fri Nov  6 11:19:04 2026 64 particles, log-likelihood variance: 1.67438874720679
+#> Fri Nov  6 11:19:18 2026 128 particles, log-likelihood variance: 0.535539774215127
+#> Fri Nov  6 11:19:18 2026 Choosing 128 particles.
+#> Fri Nov  6 11:19:19 2026 Initial trial run
+#> Fri Nov  6 11:19:44 2026 Acceptance rate: 0.255255255255255
 ```
