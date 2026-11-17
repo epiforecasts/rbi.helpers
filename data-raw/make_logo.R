@@ -4,8 +4,8 @@
 ## logo-dark.svg for sites shown in dark mode.
 set.seed(4)
 
-W <- 1200
-H <- 1385
+width <- 1200
+height <- 1385
 
 light <- list(ground = "#f6f7f9", navy = "#1f3864", blue = "#4a7fbd")
 ## the same roles on a dark ground: light lines and text, lighter samples
@@ -51,55 +51,61 @@ rounds <- list(
 hex <- "600,8 1194,350 1194,1035 600,1377 6,1035 6,350"
 
 make_logo <- function(palette) {
-  ground <- palette$ground
-  navy <- palette$navy
-  blue <- palette$blue
-
   rounds_svg <- vapply(rounds, function(r) {
     sprintf(
-      paste0('    <polygon points="%s" fill="none" stroke="%s" stroke-width="6"',
-             ' stroke-opacity="%.2f" stroke-dasharray="16 16"/>'),
-      ellipse(r$ax, r$deg), navy, r$opacity
+      paste0('    <polygon points="%s" fill="none" stroke="%s"',
+             ' stroke-width="6" stroke-opacity="%.2f"',
+             ' stroke-dasharray="16 16"/>'),
+      ellipse(r$ax, r$deg), palette$navy, r$opacity
     )
   }, character(1))
 
   final_svg <- c(
     sprintf('    <polygon points="%s" fill="%s" fill-opacity="0.12"/>',
-            ellipse(emp_ax, emp_deg), blue),
-    sprintf('    <polygon points="%s" fill="none" stroke="%s" stroke-width="14"/>',
-            ellipse(emp_ax, emp_deg), navy)
+            ellipse(emp_ax, emp_deg), palette$blue),
+    sprintf(
+      '    <polygon points="%s" fill="none" stroke="%s" stroke-width="14"/>',
+      ellipse(emp_ax, emp_deg), palette$navy
+    )
   )
 
   samples_svg <- vapply(seq_len(n), function(i) {
     sprintf(
       '    <circle cx="%.1f" cy="%.1f" r="10" fill="%s" fill-opacity="0.55"/>',
-      sx(samples[i, 1]), sy(samples[i, 2]), blue
+      sx(samples[i, 1]), sy(samples[i, 2]), palette$blue
     )
   }, character(1))
 
   c(
-    sprintf('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">', W, H, W, H),
-    '  <defs>',
+    sprintf(
+      paste0('<svg xmlns="http://www.w3.org/2000/svg"',
+             ' width="%d" height="%d" viewBox="0 0 %d %d">'),
+      width, height, width, height
+    ),
+    "  <defs>",
     '    <clipPath id="hexclip">',
     sprintf('      <polygon points="%s"/>', hex),
-    '    </clipPath>',
-    '  </defs>',
-    sprintf('  <polygon points="%s" fill="%s"/>', hex, ground),
+    "    </clipPath>",
+    "  </defs>",
+    sprintf('  <polygon points="%s" fill="%s"/>', hex, palette$ground),
     '  <g clip-path="url(#hexclip)">',
     rounds_svg,
     samples_svg,
     final_svg,
-    '  </g>',
-    sprintf('  <polygon points="%s" fill="none" stroke="%s" stroke-width="16"/>', hex, navy),
+    "  </g>",
+    sprintf(
+      '  <polygon points="%s" fill="none" stroke="%s" stroke-width="16"/>',
+      hex, palette$navy
+    ),
     sprintf(
       paste0('  <text x="600" y="500" text-anchor="middle"',
              ' font-family="Inter, Fira Sans, sans-serif" font-size="145"',
              ' fill="%s" letter-spacing="1">',
              '<tspan font-weight="600">rbi</tspan>',
              '<tspan font-weight="300">.helpers</tspan></text>'),
-      navy
+      palette$navy
     ),
-    '</svg>'
+    "</svg>"
   )
 }
 
